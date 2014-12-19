@@ -1,0 +1,102 @@
+MCC REST Address Book API
+
+The Address Book API here presented allows client applications to view and update users contacts. Contacts are stored for now in the local server database based on MongoDB.
+Your client application can use the API to create new contacts, edit or delete existing contacts, and query for contacts that match particular criteria
+
+Installation
+
+To use the provided API some packages need to be installed.
+
+Node.js
+Node.js needs to be installed on the server, please follow the instructions provided in https://github.com/joyent/node/wiki/installing-node.js-via-package-manager for an up to date guide.
+
+MongoDB
+MongoDB is used as our DB on the server, please follow the instructions provided in 
+http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/ for an up to date guide.
+
+Express
+To install Express use the following command inside the API directory, package.json will be read and all dependencies will be installed:
+
+$ npm install
+
+SSL certificate and private key
+In order to run the server, an SSL certificate and private key are required. The following describes the steps required to generate the files:
+
+Step 1: Create a Certificate Authority
+
+$ openssl genrsa -des3 -out ca.key 1024
+$ openssl req -new -key ca.key -out ca.csr
+$ openssl x509 -req -days 365 -in ca.csr -out ca.crt -signkey ca.key
+
+Step 2: Create a Server Certificate
+
+$ openssl genrsa -des3 -out server.key 1024
+$ openssl req -new -key server.key -out server.csr
+
+Then, remove the passphrase from the server certificate:
+
+$ cp server.key server.org.key
+$ openssl rsa -in server.org.key -out server.key
+
+Step 3: Generate your self-signed certificate
+
+$ openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+These should be generated and placed in the ./ssl directory. They key file name should be server.key, and the certificate file name server.crt
+
+To run
+Finally, run the service with the following command:
+
+$ npm start
+
+NOTE: Server can be accessed at https://cloudguest116.niksula.hut.fi:8080/
+
+API Structure
+User actions:
+
+Add contact
+POST /contacts
+body: ContactObj
+return: {success:[0|1]}
+
+Push contacts to Google
+POST /contacts/push/:token
+body: {contacts: [contactObj, contactObj, ... ]}
+return: {success:[0|1]}
+
+Delete contact
+DELETE /contacts/:contact_id
+return: {success:[0|1]}
+
+Fetch contact
+GET /contacts/:contact_id
+return: {contact:contactObj}
+
+Fetch contacts from Google
+GET /contacts/fetch/:token
+return: {success:[1|0 error: errors]}
+
+Show all contacts
+GET /contacts
+return: {contacts:[contactObj, contactObj, ... ] }
+
+Search for a contact
+GET /contacts/search/:search_term
+return: {contacts:[contactObj, contactObj, ... ] }
+
+Update a contact
+PUT /contacts/:contact_id
+body: contactObj
+return {success:[0|1]}
+
+contactObj = {
+	first_name: string,
+	last_name: string,
+	phone: string,
+	mobile: string, 
+	email: string, 
+	address: string,
+	_id: string,
+	__v: number
+}
+

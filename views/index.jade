@@ -1,0 +1,116 @@
+extends layout
+
+block content
+
+  #contactlist
+    nav.navbar.navbar-default(role="navigation")
+      .container-fluid
+        .navbar-header
+          a.navbar-brand(href="/") Contact Agenda 
+        #navbar-c.navbar-default
+          ul.nav.navbar-nav
+            li.active 
+              a() Contacts
+            li.dropdown
+              a.dropdown-toggle(href='#', data-toggle='dropdown') Google Sync
+                span.caret
+              ul.dropdown-menu(role='menu')
+                li(data-bind='visible: !accessTokenSet()') 
+                  a(href='#', data-bind='click: beginAuth') Auth
+                li(data-bind='visible: accessTokenSet()')
+                  a(href='#', data-bind='click: beginSyncPull') Pull
+                li(data-bind='visible: accessTokenSet()')
+                  a(href='#', data-bind='click: beginSyncPush') Push
+
+    #alert.alert.alert-info(style='display:none;')
+      a.close(href='#', data-bind='click: alertViewModel.closeAlert')
+        | ×
+      strong(data-bind='text: alertViewModel.msg_title()') Error! 
+      span(data-bind='text: alertViewModel.msg()')
+
+    .panel.panel-primary
+      .panel-heading Contacts (
+        span(data-bind='text: contacts().length')
+        | )
+        .btn.btn-default.btn-xs.glyphicon.glyphicon-search.pull-right.hide-search(data-bind="click: beginSearch", title="Toggle Search") Search
+        .btn.btn-success.btn-xs.glyphicon.glyphicon-plus.pull-right(data-bind='click: beginAdd') Add
+
+      div.panel-body
+        form.row(style='display: none;', data-bind='submit: search')
+          .input-group.searchbox
+            input#contact-list-search.form-control(type="text", data-bind='value: searchText')
+            span.input-group-btn
+              button.btn.btn-default(type="submit")
+                span.glyphicon.glyphicon-search.text-muted
+        table.table.table-striped
+          tr
+            th(style='width: 1px;')
+            th
+              b Contact
+            th(style='width: 130px;')
+              b Options
+          // ko foreach: contacts 
+          tr
+            td(data-bind='click: $parent.toggleVisible')
+              span.glyphicon.glyphicon-user 
+            td
+              p
+                b(data-bind='text: full_name, click: $parent.toggleVisible')
+              div(data-bind='visible: visible')
+                p
+                  span.glyphicon.glyphicon-envelope 
+                    small(data-bind='text: email')
+                p
+                  span.glyphicon.glyphicon-phone 
+                    small(data-bind='text: mobile')
+            td
+              div(data-bind='visible: visible')
+                button.btn.btn-xs.btn-primary(data-bind='click: $parent.view, clickBubble: false') More Details 
+                button.btn.btn-xs.btn-primary(data-bind='click: $parent.beginEdit, clickBubble: false') Edit 
+                button.btn.btn-xs.btn-danger(data-bind='click: $parent.remove, clickBubble: false') Delete 
+          // /ko 
+
+  #view.modal.fade(tabindex='-1', role='dialog', aria-labelledby='contactDialogLabel', aria-hidden='true')
+    .modal-dialog
+      .modal-content
+        .modal-header
+            button.close(type='button', data-dismiss='modal', aria-hidden='true') &times;
+            h3#viewDialogLabel(data-bind='text: titlelabel') Contact
+          .modal-body
+            form.form-horizontal
+              .input-group
+                .input-group-addon 
+                  label.glyphicon.glyphicon-user(for='inputFName')
+                input#inputFName.form-control(data-bind='value: first_name', type='text', placeholder='First name')
+              .input-group
+                .input-group-addon
+                  label.glyphicon.glyphicon-user(for='inputLName')
+                input#inputLName.form-control(data-bind='value: last_name', type="text" placeholder="Last name")
+              .input-group
+                .input-group-addon
+                  label.glyphicon.glyphicon-phone-alt(for='phoneNumber')
+                input#phoneNumber.form-control(data-bind='value: phone', type="text" placeholder="Phone number")
+              .input-group
+                .input-group-addon
+                  label.glyphicon.glyphicon-phone(for='mobileNumber')
+                input#mobileNumber.form-control(data-bind='value: mobile', type="text" placeholder="Mobile number")
+              .input-group
+                .input-group-addon
+                  label.glyphicon.glyphicon-envelope(for='email')
+                input#email.form-control(data-bind='value: email', type="text" placeholder="Email")
+              .input-group
+                .input-group-addon
+                  label.glyphicon.glyphicon-home(for='address')
+                input#address.form-control(data-bind='value: address', type="text" placeholder="Address")
+          .modal-footer
+            button.btn.btn-primary(data-bind='click: doContact, text: actionlabel, visible: actionlabel() != undefined') Do Contact
+            button.btn(data-dismiss='modal', aria-hidden='true') Cancel
+ 
+  script.
+    contactViewModel = new ContactViewModel();
+    alertViewModel = new AlertViewModel();
+    contactsViewModel = new ContactsViewModel();
+    ko.applyBindings(contactViewModel, $('#view')[0]);
+    ko.applyBindings(alertViewModel, $('#alert')[0]);
+    ko.applyBindings(contactsViewModel, $('#contactlist')[0]);
+    contactsViewModel.setToken(!{tokens});
